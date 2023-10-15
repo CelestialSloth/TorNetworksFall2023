@@ -1,0 +1,55 @@
+#!/bin/bash
+#Code to find number of unique IP addresses of tor over 24 hours of first day of month
+#Find number of unique tor relays over 24 hours (number of relays are updated every hour
+#so compile list of unique relays over 24 hours)
+#https://collector.torproject.org/archive/relay-descriptors/consensuses/
+#use Server-Descriptors to extract IP addresses
+#!/bin/bash
+#!/bin/bash
+
+startMonth=$1
+startYear=$2
+endMonth=$3
+endYear=$4
+
+#TODO:If not given, then false
+if [ $# -ge 5 ]
+then
+    bandwidth=$5
+else
+    bandwidth=false
+fi
+echo $bandwidth
+bandwidth=false
+
+#runs findTor_Parallel to get list of ip addresses associated with tor relays
+#for the given range of months
+#writes this list to data/formatted/torIPLists/torIPList-{year}-{month}
+echo "Running findTor_Parallel"
+echo "Finding bandwidth: $bandwidth"
+python3 findTor_Parallel.py -s $startMonth $startYear -e $endMonth $endYear -b $bandwidth
+
+#Look through each file created in findTor_Parallel and keep only unique ip addresses
+
+while [ $startYear -lt $endYear ] || [ $startMonth -le $endMonth -a $startYear == $endYear ]
+do
+    if [ ${#startMonth} -lt 2 ]; then formattedStartMonth="0$startMonth"; else formattedStartMonth="$startMonth"; fi
+   
+    TorIPList=data/formatted/torIPLists/torIPList-${startYear}-${formattedStartMonth}
+    
+    TorIPListSorted="data/formatted/torIPLists/torIPListSorted-${startYear}-${formattedStartMonth}"
+    
+    if $bandwidth ;then #Sum the bandwidths by IP address
+        awk -F' ' '{a[$1] += $2} END { for (x in a) printf "%s %s\n", x, a[x] }' < $TorIPList > $TorIPListSorted
+    else #Get only unique IP addresses
+        sort $TorIPList | uniq > $TorIPListSorted 
+    fi
+
+    ((startMonth++))
+    if [ $startMonth = 13 ]
+    then
+        wait
+        ((startYear++))
+        ((startMonth=1))
+    fi
+done 
