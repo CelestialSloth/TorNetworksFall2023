@@ -48,3 +48,105 @@ downloadFileStart="https://collector.torproject.org/archive/relay-descriptors/co
 > torFilesZipped.txt
 #Downloading all data from tor project.
 #Creating variable contaning all URLs to download
+while [ $startYear -lt $endYear ] || [ $startMonth -le $endMonth -a $startYear == $endYear ]
+do
+    if [ ${#startMonth} -lt 2 ]
+        then formattedStartMonth="0$startMonth"
+        else formattedStartMonth="$startMonth"
+    fi
+
+    #download data with tor IPs and output to currentFile
+    downloadFileEnd="consensuses-${startYear}-${formattedStartMonth}.tar.xz"
+    downloadFileName=${downloadFileStart}${downloadFileEnd}
+    
+    #save urls to file, torURLs.txt
+    #echo $downloadFileName >> torURLs.txt
+    torFileZip="consensuses-${startYear}-${formattedStartMonth}.tar.xz"
+    torDirectory="consensuses-${startYear}-${formattedStartMonth}"
+
+    echo "$torDirectory" 
+    if [[ ! -d $torDirectory ]]
+    then
+        echo "Downloading"
+        curl $downloadFileName --output $torFileZip &
+        echo $torFileZip >> torFilesZipped.txt
+    else   
+        echo "Directory already downloaded"
+    fi
+    
+    ((startMonth++))
+    if [ $startMonth = 13 ]
+    then
+        wait
+        ((startYear++))
+        ((startMonth=1))
+    fi
+done
+wait
+
+echo "Unzipping any tor files"
+#cat torFilesZipped.txt | xargs -n 1 -P 8 tar xf
+#TODO: run parallel
+xargs -P 6 -I{} tar xf "{}" < torFilesZipped.txt
+
+#mv consensuses-20* -t 'consensuses/'
+xargs -I{} rm -r "{}" < torFilesZipped.txt
+
+rm torFilesZipped.txt
+
+startMonth=$1
+startYear=$2
+echo "Finding data from CAIDA for $1, $2 to $3, $4"
+#Downloading all data from CAIDA.
+while [ $startYear -lt $endYear ] || [ $startMonth -le $endMonth -a $startYear == $endYear ]
+do
+    if [ ${#startMonth} -lt 2 ]
+        then formattedStartMonth="0$startMonth"
+        else formattedStartMonth="$startMonth"
+    fi
+    #download IP to AS mappings from caida
+    currentFile="caidaData/caidaData${startYear}-${formattedStartMonth}"
+    currentFileZip="caidaData/caidaData${startYear}-${formattedStartMonth}.gz"
+
+    if [[ ! -f $currentFile ]]
+    then
+        start_URL="https://publicdata.caida.org/datasets/routing/routeviews-prefix2as/${startYear}/${formattedStartMonth}/"
+        curl $start_URL --output html_file
+        end_URL=$(python3 findURL.py $formattedStartMonth $startYear) #Use BeautifulSoup in Python to get right address
+        URL=${start_URL}${end_URL}
+        curl ${URL} --output $currentFileZip &
+        caidaArray+=($currentFileZip)
+        #echo $currentFileZip >> caidaFilesZipped.txt
+    else
+        echo "Caida data exists"
+    fi
+    echo "Got caida data"
+    ((startMonth++))
+    if [ $startMonth = 13 ]
+    then
+        wait
+        ((startYear++))
+        ((startMonth=1))
+    fi
+done
+wait
+if [ -f html_file ]; then rm html_file; fi
+if [ -f torFileZip.txt ]; then rm torFileZip.txt; fi
+#Gzip -d *.gz
+#rm *.gz
+
+#xargs -P 6 Gzip < caidaFilesZipped.txt
+#xargs -I{} rm -r "{}" < caidaFilesZipped.txt
+
+#rm caidaFilesZipped.txt
+
+echo "Unzipping data from CAIDA for $1, $2 to $3, $4"
+for i in "${caidaArray[@]}"
+    do
+        echo "Unzipping file"
+        gzip -d $i
+        #rm $i
+    done
+
+
+echo "Data download complete"
