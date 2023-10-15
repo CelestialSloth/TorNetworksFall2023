@@ -1,0 +1,50 @@
+#!/bin/bash
+
+#Code to find number of unique IP addresses of tor over 24 hours of first day of month
+#Differs from unique_Tor because it 
+    #- Uses parallel programming
+    #- Saves downloaded data
+#Find number of unique tor relays over 24 hours (number of relays are updated every hour
+#so compile list of unique relays over 24 hours)
+#https://collector.torproject.org/archive/relay-descriptors/consensuses/
+#use Server-Descriptors to extract IP addresses
+
+if [ $# != 4 ]
+then
+    echo "Please follow the format of startMonth startYear endMonth endYear"
+    exit
+elif [ $1 -lt 1 ] || [ $1 -gt 12 ] || [ $3 -lt 1 ] || [ $3 -gt 12 ]
+then
+    echo "Give a valid month between 01 to 12"
+    exit
+elif [ $2 -le 2007 ] && [ $1 -lt 11 ]
+then
+    echo "No data before 11, 2007"
+    exit
+fi
+
+#Save user arguments
+echo "Finding the unique number of Tor IPs from $1, $2 to $3, $4"
+startMonth=$1
+startYear=$2
+endMonth=$3
+endYear=$4
+
+#Create file to save results, check if file w/ results exists
+if [[ -f results-$2$formattedStartMonth-$4$formattedEndMonth.txt ]]
+then
+    echo "A file with this data exists already."
+    read -p "Would you like to continue? y/n: " uservar
+    if [ $uservar != "y" ]; then 
+        echo "Ending code."  
+        exit 0
+    fi  
+fi
+> results-${2}${formattedStartMonth}-${4}${formattedEndMonth}.txt
+
+downloadFileStart="https://collector.torproject.org/archive/relay-descriptors/consensuses/"
+
+> torFileZip.txt
+> torFilesZipped.txt
+#Downloading all data from tor project.
+#Creating variable contaning all URLs to download
