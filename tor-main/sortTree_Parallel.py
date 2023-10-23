@@ -73,7 +73,6 @@ def searchForAS(tree: Tree, readFrom: str, saveToFile: str, bandwidth: bool):
     f.close()
 
     saveToFileBandwidth = saveToFile+"_Bandwidth"
-    listASBandwidth(tree, readFrom, saveToFile)
 
 def main():
     parser = argparse.ArgumentParser()

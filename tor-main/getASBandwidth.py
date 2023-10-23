@@ -20,9 +20,11 @@ def listASBandwidth(readFrom):
         readFrom: list of ASes and Bandwidths
         saveToFile: file to save AS Bandwidths to
     """
+    year = readFrom.split("-")[1]
+    month = readFrom.split("-")[2]
 
-    writeTo= "data/formatted/asLists/" + "bandwidthPerAS" + (readFrom.split("-",1)[1] + ".csv")
-    writeTo2= "data/formatted/asLists/" + "bandwidthPerRelay" + (readFrom.split("-",1)[1]+ ".csv")
+    writeTo= "data/formatted/asLists/" + "bandwidthPerAS" + '.csv'
+    writeTo2= "data/formatted/asLists/" + "bandwidthPerRelay" + ".csv"
 
     try: 
         f = open("data/formatted/asLists/" + readFrom, "r")
@@ -30,8 +32,8 @@ def listASBandwidth(readFrom):
         print("Error opening:", readFrom)
         exit(1)
 
-    listOfASBandwidth = open(writeTo, "w+")
-    listOfASBandwidthPerRelay = open(writeTo2, "w+")
+    listOfASBandwidth = open(writeTo, "a+")
+    listOfASBandwidthPerRelay = open(writeTo2, "a+")
 
     lastAS = "0"
     sumBand = 0
@@ -42,13 +44,14 @@ def listASBandwidth(readFrom):
         currentBand = lsplit[1] 
         currentAS = lsplit[0]
         if ((lastAS != currentAS) & (lastAS != "0")):
-            listOfASBandwidth.write(lastAS + ',' + str(numRelay) + ',')
+            listOfASBandwidth.write(year + ',' + month + ',' + lastAS + ',' + str(numRelay) + ',')
             listOfASBandwidth.write(" " + str(sumBand)+'\n')
-            if (numRelay > 10):
-                listOfASBandwidthPerRelay.write(lastAS)
-                listOfASBandwidthPerRelay.write(", "+ str(numRelay) +", ")
-                perRelay = sumBand/(numRelay)
-                listOfASBandwidthPerRelay.write(" " + str(perRelay)+'\n')
+            
+            listOfASBandwidthPerRelay.write(year + ',' + month + ',' + lastAS)
+            listOfASBandwidthPerRelay.write(", "+ str(numRelay) +", ")
+            perRelay = sumBand/(numRelay)
+            listOfASBandwidthPerRelay.write(" " + str(perRelay)+'\n')
+            
             numRelay = 0
             sumBand = int(currentBand)
             lastAS = currentAS
