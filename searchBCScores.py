@@ -21,11 +21,10 @@ Output:
 """
 
 # searches through the kafka messages in ihr bcscore topic for the given asn
-def searchByASN(asn, num_partitions, server):
-    topic = 'ihr_bcscore_rrc10'
+def searchByASN(asn, num_partitions, server, topic):
 
     consumer = Consumer({
-        'bootstrap.servers': 'localhost:9092',
+        'bootstrap.servers': server,
         'group.id': 'ihr_tail',  # does this need to be named this?
         'enable.auto.commit': False,
     })
@@ -61,9 +60,9 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--server', default='localhost:9092')
     parser.add_argument('-p', '--partitions', default=0)
     parser.add_argument('-n', '--asn')
-    # parser.add_argument('-t', '--topic', default='ihr_hegemony')
+    parser.add_argument('-t', '--topic', default='ihr_bcscore_rrc10')
     args = parser.parse_args()
     assert args.asn
 
     # searchByASNKafka(args.asn, args.topic, args.partitions, args.server)
-    searchByASN(args.asn, args.partitions, args.server)
+    searchByASN(args.asn, args.partitions, args.server, args.topic)
