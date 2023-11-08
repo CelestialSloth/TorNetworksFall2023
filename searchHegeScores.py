@@ -5,6 +5,22 @@ import csv
 
 from confluent_kafka import Consumer, TopicPartition, KafkaError
 
+"""
+Use this code to search through the as hegemony scores in the ihr_hegemony
+kafka topic. This assumes that the ihr_hegemony kafka topic has been
+populated by running the scripts in the as-hegemony repository.
+
+Example to run this code:
+$ python3 searchHegeScores.py --asn 12552
+You can specify server with the --server flag, number of partitions with
+the --partitions flag.
+
+Output:
+* This code will print a dictionary of information about the asn, including
+the hegemony score, if the asn is found in the data.
+* If the asn isn't found, nothing is printed.
+"""
+
 # def searchByASNKafka(asn, topic, num_partitions, server):
 # searches through the kafka messages in ihr_hegemony for the given asn
 def searchByASN(asn, num_partitions, server):
